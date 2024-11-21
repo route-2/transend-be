@@ -1,25 +1,45 @@
+// import { Module } from '@nestjs/common';
+// import { TypeOrmModule } from '@nestjs/typeorm';
+// import { RestaurantModule } from './restaurant/restaurant.module'; // Import RestaurantModule
+// import { Restaurant } from './restaurant/restaurant.entity';  // Your Restaurant entity
+
+// @Module({
+//   imports: [
+//     TypeOrmModule.forRoot({
+//       type: 'mysql',  // Or your DB type (mysql, sqlite, etc.)
+//       host: 'localhost',
+//       port: 3306,  // Change to the correct MySQL port
+//       username: 'root',  // Your DB credentials
+//       password: 'Rutusway56',
+//       database: 'lam',  // Your DB name
+//       entities: [Restaurant],  // Register your entities
+//       synchronize: true,  // Set to false in production
+//     }),
+//     RestaurantModule,  // Import your Restaurant module here
+//   ],
+// })
+// export class AppModule {}
+// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Restaurant } from './restaurant/restaurant.entity'; 
-import { RestaurantModule } from './restaurant/restaurant.module';
+import { ProfileModule } from './profile/profile.module'; // Import RestaurantModule
+import { AuthModule } from './auth/kroger-auth.module';
+import { Restaurant } from './profile/profile.entity';  // Your Restaurant entity
 
 @Module({
   imports: [
+    AuthModule,
     TypeOrmModule.forRoot({
-      type: 'mysql',            // Database type
-      host: 'localhost',        // Database host
-      port: 3306,               // MySQL default port
-      username: 'root',         // MySQL username
-      password: '',             // MySQL password (set this value)
-      database: 'lam',          // Database name
-      synchronize: true,        // Automatically synchronize the schema (not recommended for production)
-      entities: [Restaurant],   // Add your Restaurant entity here
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: 'Rutusway56',
+      database: 'lam',
+      entities: [Restaurant], // Register your entities
+      synchronize: true,  // Set to false in production
     }),
-    RestaurantModule,
+    ProfileModule,  // Import your Restaurant module here
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
