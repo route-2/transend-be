@@ -39,7 +39,7 @@ import { Restaurant } from './profile/profile.entity';  // Your Restaurant entit
       entities: [Restaurant], // Register your entities
       synchronize: true,  // Set to false in production
     }),
-    ProfileModule,  // Import your Restaurant module here
+    ProfileModule, 
   ],
 })
 export class AppModule {}
