@@ -25,6 +25,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProfileModule } from './profile/profile.module'; // Import RestaurantModule
 import { AuthModule } from './auth/kroger-auth.module';
 import { Restaurant } from './profile/profile.entity';  // Your Restaurant entity
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { Restaurant } from './profile/profile.entity';  // Your Restaurant entit
       synchronize: true,  // Set to false in production
     }),
     ProfileModule, 
+    ProductModule,
   ],
 })
 export class AppModule {}
