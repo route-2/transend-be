@@ -30,4 +30,28 @@ export class AuthService {
       throw new Error('Failed to exchange code for token');
     }
   }
+
+  // Exchange client credentials for an access token
+  async exchangeClientCredentialsForToken(): Promise<string> {
+    const tokenUrl = 'https://api.kroger.com/v1/connect/oauth2/token';
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(tokenUrl, null, {
+          params: {
+            grant_type: 'client_credentials',  // Use client credentials flow
+            scope: 'product.compact',  // Specify the required scope for product data
+            client_id: process.env.KROGER_CLIENT_ID,  // Your Kroger client ID
+            client_secret: process.env.KROGER_CLIENT_SECRET,  // Your Kroger client secret
+          },
+        })
+      );
+
+      const { access_token } = response.data;
+      return access_token;  // Return the access token
+    } catch (error) {
+      console.error('Error exchanging client credentials for token:', error);
+      throw new Error('Failed to exchange client credentials for token');
+    }
+  }
 }

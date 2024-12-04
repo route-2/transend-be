@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,HttpException,HttpStatus } from '@nestjs/common';
 import axios from 'axios';
 
 @Injectable()
@@ -23,4 +23,34 @@ export class ProductService {
       throw new Error('Failed to fetch product data');
     }
   }
+
+  private readonly apiUrl = 'https://api.kroger.com/v1/products';
+
+ /**
+   * Search products from the Kroger API using a search term and a token provided by the frontend.
+   * @param token - The Bearer token passed from the frontend.
+   * @param term - The search term (e.g., "fat free milk").
+   * @returns The response data from the Kroger API.
+   */
+ async searchProducts(token: string, term: string): Promise<any> {
+  try {
+    const response = await axios.get(this.apiUrl, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`, // Token received from the frontend
+      },
+      params: {
+        'filter.term': term,  // Ensure 'filter.term' is the correct query parameter
+      },
+    });
+
+    return response.data;  // Return the data received from the Kroger API
+  } catch (error) {
+    console.error('Error in searchProducts:', error.response?.data || error.message);
+    throw new HttpException(
+      error.response?.data || 'Failed to fetch products',
+      error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
 }
