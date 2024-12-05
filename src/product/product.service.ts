@@ -34,11 +34,14 @@ export class ProductService {
    */
  async searchProducts(token: string, term: string): Promise<any> {
   try {
+
+  
     const response = await axios.get(this.apiUrl, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${token}`, // Token received from the frontend
       },
+      timeout:50000,
       params: {
         'filter.term': term,  // Ensure 'filter.term' is the correct query parameter
       },

@@ -40,26 +40,33 @@ export class ProductController {
    * @param authorization - The Bearer token from the Authorization header.
    */
   @Get('searchprod')
-  async searchProduct(
-    @Query('term') term: string,  // Search term
-    @Headers('Authorization') authorization: string,  // Bearer token passed in the Authorization header
-  ): Promise<any> {
-    if (!authorization) {
-      throw new HttpException('Authorization token is required', HttpStatus.UNAUTHORIZED);
-    }
-    if (!term) {
-      throw new HttpException('Search term is required', HttpStatus.BAD_REQUEST);
-    }
-  
-    // Extract the Bearer token from the Authorization header
-    const token = authorization.replace('Bearer ', '');
-    
-    // Pass the token and term to the service for processing
-    return this.productService.searchProducts(token, term);
+async searchProduct(
+  @Query('term') term: string,  
+  @Headers('Authorization') authorization: string,  
+): Promise<any> {
+  if (!authorization) {
+    throw new HttpException('Authorization token is required', HttpStatus.UNAUTHORIZED);
   }
-}  
+  if (!term) {
+    throw new HttpException('Search term is required', HttpStatus.BAD_REQUEST);
+  }
+  
+  // Log the incoming request details for debugging
+  console.log(`Received search for term: ${term} with Authorization token`);
 
-
+  const token = authorization.replace('Bearer ', '');
+  
+  try {
+    const result = await this.productService.searchProducts(token, term);
+    console.log('Search result:', result);  // Log search result
+  
+    return result;
+  } catch (error) {
+    console.error('Error in searchProducts:', error);  // Log any error
+    throw new HttpException('Error in searching products', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+}
 /**
    * 
    * curl -X GET \
