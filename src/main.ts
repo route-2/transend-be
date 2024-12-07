@@ -34,7 +34,7 @@ app.use(cors({ origin: "http://localhost:3000" }));
   });
 
   app.enableCors({
-    origin: 'http://localhost:3000', // Allow only your frontend origin
+    origin: '*', // Allow only your frontend origin
     methods: 'GET, POST, PUT, DELETE', // Allow specific HTTP methods
     allowedHeaders: 'Content-Type, Authorization', // Allow specific headers
   });
