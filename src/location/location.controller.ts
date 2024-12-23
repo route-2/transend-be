@@ -22,8 +22,10 @@ export class locationController{
         );
       }
 
+      const token = authHeader.split(' ')[1];
+
     try {
-      return await this.krogerLocationsService.fetchLocations(latitude, longitude,authHeader);
+      return await this.krogerLocationsService.fetchLocations(latitude, longitude,token);
     } catch (error) {
       throw new HttpException(
         'Failed to fetch Kroger locations.',

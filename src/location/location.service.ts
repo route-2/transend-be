@@ -12,32 +12,11 @@ export class locationService {
   private readonly CLIENT_ID = process.env.KROGER_CLIENT_ID;
   private readonly CLIENT_SECRET = process.env.KROGER_CLIENT_SECRET;
 
-  async fetchToken(): Promise<string> {
-    try {
-      const response = await axios.post(
-        this.API_TOKEN_URL,
-        new URLSearchParams({
-          grant_type: 'client_credentials',
-        }),
-        {
-          auth: {
-            username: this.CLIENT_ID,
-            password: this.CLIENT_SECRET,
-          },
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        },
-      );
 
-      return response.data.access_token;
-    } catch (err) {
-      console.error('Error fetching token:', err);
-      throw new HttpException('Failed to fetch token.', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
   async fetchLocations(latitude: string, longitude: string, token: string): Promise<any[]> {
     try {
+     console.log('Token:', token);
+
       const response = await axios.get(this.API_LOCATIONS_URL, {
         headers: {
           Accept: 'application/json',
