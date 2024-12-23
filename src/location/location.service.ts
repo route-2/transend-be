@@ -36,15 +36,12 @@ export class locationService {
       throw new HttpException('Failed to fetch token.', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
-  async fetchLocations(latitude: string, longitude: string): Promise<any[]> {
-    const token = await this.fetchToken();
-
+  async fetchLocations(latitude: string, longitude: string, token: string): Promise<any[]> {
     try {
       const response = await axios.get(this.API_LOCATIONS_URL, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Use token sent from the frontend
         },
         params: {
           'filter.latLong.near': `${latitude},${longitude}`,
@@ -52,7 +49,7 @@ export class locationService {
           'filter.limit': 10, // Default is 10 results
         },
       });
-
+  
       return response.data.data || [];
     } catch (err) {
       console.error('Error fetching locations:', err);
@@ -62,4 +59,4 @@ export class locationService {
       );
     }
   }
-}
+}  
