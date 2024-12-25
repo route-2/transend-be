@@ -27,6 +27,7 @@ import { AuthModule } from './auth/kroger-auth.module';
 import { Restaurant } from './profile/profile.entity';  // Your Restaurant entity
 import { ProductModule } from './product/product.module';
 import {locationModule} from './location/location.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import {locationModule} from './location/location.module';
     ProfileModule, 
     ProductModule,
     locationModule,
+    CartModule,
   ],
 })
 export class AppModule {}
