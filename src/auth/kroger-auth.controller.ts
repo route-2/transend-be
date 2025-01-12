@@ -103,15 +103,16 @@ export class KrogerAuthController {
   }
 
   @Get('get-tokens')
-async getTokens(@Query('chatId') chatId: string) {
-  const tokens = await this.authService.getUserTokens(chatId);
-
-  if (!tokens) {
-    return { message: 'No tokens found for this user' };
+  async getTokens(@Query('chatId') chatId: string) {
+    try {
+      const tokens = await this.authService.getUserTokens(chatId);
+      return tokens; // Includes access_token, refresh_token, and expires_in
+    } catch (error) {
+      console.error(`Error fetching tokens for chat ID ${chatId}:`, error.message);
+      return { message: error.message };
+    }
   }
-
-  return tokens; // Includes access_token, refresh_token, and expires_in
-}
+  
 
   
 

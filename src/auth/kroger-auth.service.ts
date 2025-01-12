@@ -180,9 +180,23 @@ this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
   }
   
   
-  async getUserTokens(chatId: string): Promise<{ access_token: string; refresh_token: string; expires_in: number } | null> {
+  async getUserTokens(chatId: string): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
     const tokensString = await this.redisClient.get(`kroger_tokens:${chatId}`);
-    return tokensString ? JSON.parse(tokensString) : null;
+    if (!tokensString) {
+      throw new Error('No tokens found for this user. Please log in.');
+    }
+  
+    const tokens = JSON.parse(tokensString);
+  
+    // Check if the token is expired
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+    const tokenExpirationTime = tokens.expires_in + currentTime; // Add expiration to the time it was saved
+    if (currentTime >= tokenExpirationTime) {
+      console.log(`Access token expired for chat ID ${chatId}, refreshing token...`);
+      return this.refreshAccessToken(chatId); // Refresh the token
+    }
+  
+    return tokens;
   }
   
   
