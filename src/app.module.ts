@@ -1,37 +1,32 @@
-// import { Module } from '@nestjs/common';
-// import { TypeOrmModule } from '@nestjs/typeorm';
-// import { RestaurantModule } from './restaurant/restaurant.module'; // Import RestaurantModule
-// import { Restaurant } from './restaurant/restaurant.entity';  // Your Restaurant entity
-
-// @Module({
-//   imports: [
-//     TypeOrmModule.forRoot({
-//       type: 'mysql',  // Or your DB type (mysql, sqlite, etc.)
-//       host: 'localhost',
-//       port: 3306,  // Change to the correct MySQL port
-//       username: 'root',  // Your DB credentials
-//       password: 'Rutusway56',
-//       database: 'lam',  // Your DB name
-//       entities: [Restaurant],  // Register your entities
-//       synchronize: true,  // Set to false in production
-//     }),
-//     RestaurantModule,  // Import your Restaurant module here
-//   ],
-// })
-// export class AppModule {}
 // src/app.module.ts
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProfileModule } from './profile/profile.module'; // Import RestaurantModule
+
+// Import the RedisModule
+import { RedisModule } from '@liaoliaots/nestjs-redis';
+
+import { ProfileModule } from './profile/profile.module';
 import { AuthModule } from './auth/kroger-auth.module';
-import { Restaurant } from './profile/profile.entity';  // Your Restaurant entity
+import { Restaurant } from './profile/profile.entity'; // Example entity
 import { ProductModule } from './product/product.module';
-import {locationModule} from './location/location.module';
+import { locationModule } from './location/location.module';
 import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
-    AuthModule,
+    RedisModule.forRoot({
+      closeClient: true,
+
+      readyLog: true,
+
+      config: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+
+    // 2) Configure MySQL TypeORM
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
@@ -39,10 +34,12 @@ import { CartModule } from './cart/cart.module';
       username: 'root',
       password: 'Rutusway56',
       database: 'lam',
-      entities: [Restaurant], // Register your entities
-      synchronize: true,  // Set to false in production
+      entities: [Restaurant],
+      synchronize: true,
     }),
-    ProfileModule, 
+
+    AuthModule,
+    ProfileModule,
     ProductModule,
     locationModule,
     CartModule,
