@@ -78,6 +78,8 @@ this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
 
   }
+ 
+  
   /**
    * Send a message to the Telegram user
    */
@@ -125,42 +127,59 @@ this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
     }
   }
 
-  async refreshAccessToken(chatId: string): Promise<{ access_token: string; refresh_token: string; expires_in: number } | null> {
-    const tokens = await this.getUserTokens(chatId);
-    if (!tokens || !tokens.refresh_token) {
-      throw new Error('Refresh token not found. Please log in again.');
+  async refreshAccessToken(chatId: string): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
+    const tokensString = await this.redisClient.get(`kroger_tokens:${chatId}`);
+    if (!tokensString) {
+      console.error(`No tokens found in Redis for chat ID ${chatId}.`);
+      throw new Error('No tokens found. User needs to log in again.');
+    }
+  
+    const tokens = JSON.parse(tokensString);
+    if (!tokens.refresh_token) {
+      console.error(`No refresh token found for chat ID ${chatId}.`);
+      throw new Error('No refresh token found. User needs to log in again.');
     }
   
     const tokenUrl = 'https://api.kroger.com/v1/connect/oauth2/token';
   
     try {
-      const response = await firstValueFrom(
-        this.httpService.post(
-          tokenUrl,
-          new URLSearchParams({
-            client_id: process.env.KROGER_CLIENT_ID,
-            client_secret: process.env.KROGER_CLIENT_SECRET,
-            grant_type: 'refresh_token',
-            refresh_token: tokens.refresh_token,
-          }).toString(),
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          },
-        ),
-      );
+      console.log(`Attempting to refresh token for chat ID ${chatId}...`);
+      const response = await this.httpService.post(
+        tokenUrl,
+        new URLSearchParams({
+          client_id: process.env.KROGER_CLIENT_ID,
+          client_secret: process.env.KROGER_CLIENT_SECRET,
+          grant_type: 'refresh_token',
+          refresh_token: tokens.refresh_token,
+        }).toString(),
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        },
+      ).toPromise();
   
       const { access_token, refresh_token, expires_in } = response.data;
   
-      // Save the new tokens
-      await this.saveUserTokens(chatId, { access_token, refresh_token, expires_in });
+      console.log(`Successfully refreshed token for chat ID ${chatId}. Saving updated tokens...`);
   
-      console.log(`Access token refreshed for chat ID ${chatId}:`, { access_token, expires_in });
+      // Save refreshed tokens with updated `created_at`
+      await this.saveUserTokens(chatId, {
+        access_token,
+        refresh_token,
+        expires_in,
+      });
+  
+      console.log(`Tokens saved successfully for chat ID ${chatId}.`);
       return { access_token, refresh_token, expires_in };
     } catch (error) {
-      console.error('Error refreshing access token:', error.response?.data || error.message);
-      throw new Error('Failed to refresh access token');
+      console.error(`Error refreshing token for chat ID ${chatId}:`, error.message);
+  
+      // Handle 401 Unauthorized (invalid refresh token)
+      if (error.response?.status === 401) {
+        console.error(`Invalid refresh token for chat ID ${chatId}. Deleting Redis key.`);
+        await this.redisClient.del(`kroger_tokens:${chatId}`);
+      }
+  
+      throw new Error('Failed to refresh token. User may need to log in again.');
     }
   }
   
@@ -169,14 +188,17 @@ this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
   async saveUserTokens(chatId: string, tokens: { access_token: string; refresh_token: string; expires_in: number }): Promise<void> {
     const { access_token, refresh_token, expires_in } = tokens;
   
+    const created_at = Math.floor(Date.now() / 1000); // Current time in seconds
+    console.log(`Saving tokens for chat ID ${chatId} with TTL ${expires_in}`);
+  
     await this.redisClient.set(
       `kroger_tokens:${chatId}`,
-      JSON.stringify({ access_token, refresh_token, expires_in }),
+      JSON.stringify({ access_token, refresh_token, expires_in, created_at }),
       'EX',
-      expires_in,
+      expires_in // Set TTL to match token expiration
     );
   
-    console.log(`Tokens saved for chat ID ${chatId}:`, tokens);
+    console.log(`Tokens saved for chat ID ${chatId}:`, { access_token, refresh_token, expires_in, created_at });
   }
   
   
@@ -188,9 +210,9 @@ this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
   
     const tokens = JSON.parse(tokensString);
   
-    // Check if the token is expired
     const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-    const tokenExpirationTime = tokens.expires_in + currentTime; // Add expiration to the time it was saved
+    const tokenExpirationTime = tokens.created_at + tokens.expires_in; // Calculate exact expiration time
+  
     if (currentTime >= tokenExpirationTime) {
       console.log(`Access token expired for chat ID ${chatId}, refreshing token...`);
       return this.refreshAccessToken(chatId); // Refresh the token

@@ -33,6 +33,7 @@ import { Response } from 'express';
 @Controller('auth/kroger')
 export class KrogerAuthController {
   constructor(private readonly authService: AuthService) {}
+  
 
   /**
    * Step 1: Redirect user to Kroger's /authorize endpoint
