@@ -31,16 +31,6 @@ dotenv.config();
     }),
     MongooseModule.forRoot(`${process.env.MONGO_URI}`),
     
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'Rutusway56',
-      database: 'lam',
-      entities: [Restaurant],
-      synchronize: true,
-    }),
 
     AuthModule,
     ProfileModule,
